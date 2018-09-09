@@ -83,13 +83,8 @@ class Game {
 
   private void render() {
     noStroke();
-    fill(0xff8b4513);
-    rect(width/2, 0, width * 2, height * 0.55);
-    rect(width/2, height*1.15, width * 2, height * 0.55);
+    background(0xff8b4513);
     directionalLight(255, 2555, 255, 0.5, 0.5, -1);
-    //  ortho();
-    //board.render();
-    //renderStones();
     renderBoard();
     drawHud();
   }
@@ -295,7 +290,7 @@ class Game {
       background(0xff8b4513);
       board.render();
       renderStones();
-      drawBoard = false;
+      //drawBoard = false;
       popMatrix();
     }
   }
