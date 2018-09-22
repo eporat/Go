@@ -349,14 +349,14 @@ class Game {
   }
 
   Point getDrawXY(float x, float y) {
-    int drawX = int(Board.OFFSET_X+x*Board.SQUARE_SIZE - width/2);
-    int drawY = int(Board.OFFSET_Y+y*Board.SQUARE_SIZE - height/2);
+    int drawX = int(board.OFFSET_X+x*board.SQUARE_SIZE - width/2);
+    int drawY = int(board.OFFSET_Y+y*board.SQUARE_SIZE - height/2);
     return new Point(drawX, drawY);
   }
 
   Point getBoardXY(int x, int y) {
-    int boardX = round((x-Board.OFFSET_X)/(Board.SQUARE_SIZE+1));
-    int boardY = round((y-Board.OFFSET_Y)/(Board.SQUARE_SIZE+1));
+    int boardX = round((x-board.OFFSET_X)/(board.SQUARE_SIZE+1));
+    int boardY = round((y-board.OFFSET_Y)/(board.SQUARE_SIZE+1));
     return new Point(boardX, boardY);
   }
 }

@@ -1,20 +1,20 @@
 class Board {
 
-  final static int BOARD_SIZE = size, MARGIN = 1;
-  final static float SQUARE_SIZE = (SCREEN_WIDTH * 0.5) / (BOARD_SIZE - 1 + 2 * MARGIN);
-  final static float OFFSET_X = (SCREEN_WIDTH * 0.5) - 0.5 * (SQUARE_SIZE * (BOARD_SIZE - 1 + 2 * MARGIN));
-  final static float OFFSET_Y = (SCREEN_HEIGHT * 0.55) - 0.5 * (SQUARE_SIZE * (BOARD_SIZE - 1 + 2 * MARGIN));
+  int MARGIN = 1;
+  float SQUARE_SIZE = (width * 0.5) / (size - 1 + 2 * MARGIN);
+  float OFFSET_X = (width * 0.5) - 0.5 * (SQUARE_SIZE * (size - 1 + 2 * MARGIN));
+  float OFFSET_Y = (height * 0.55) - 0.5 * (SQUARE_SIZE * (size - 1 + 2 * MARGIN));
   PVector[][] points;
   boolean firstDraw = true;
 
 
   Board(int size) {
-    points = new PVector[BOARD_SIZE][BOARD_SIZE];
+    points = new PVector[size][size];
   }
 
   void initPoints() {
-    for (int x = 0; x < BOARD_SIZE; x++) {
-      for (int y = 0; y < BOARD_SIZE; y++) {
+    for (int x = 0; x < size; x++) {
+      for (int y = 0; y < size; y++) {
         Point point = game.getDrawXY(y, x);
         float drawX = screenX(point.x, point.y, 0);
         float drawY = screenY(point.x, point.y, 0);
@@ -36,16 +36,16 @@ class Board {
 
     Point point;
 
-    point = game.getDrawXY(float(BOARD_SIZE-1)/2, float(BOARD_SIZE-1)/2);
+    point = game.getDrawXY(float(size-1)/2, float(size-1)/2);
     pushMatrix();
     translate(point.x, point.y, -height*0.025);
     fill(#ffa54f);
-    box(SQUARE_SIZE * (BOARD_SIZE - 1 + 2 * MARGIN), SQUARE_SIZE * (BOARD_SIZE - 1 + 2 * MARGIN), height*0.05);
+    box(SQUARE_SIZE * (size - 1 + 2 * MARGIN), SQUARE_SIZE * (size - 1 + 2 * MARGIN), height*0.05);
     popMatrix();
 
     stroke(0);
-    for (int x = 0; x < BOARD_SIZE - 1; x++) {
-      for (int y = 0; y < BOARD_SIZE - 1; y++) {
+    for (int x = 0; x < size - 1; x++) {
+      for (int y = 0; y < size - 1; y++) {
         point = game.getDrawXY(y, x);
         pushMatrix();
         translate(point.x, point.y);
@@ -62,8 +62,8 @@ class Board {
     float closestDistance = MAX_INT;
     PVector mouse = new PVector(mouseX, mouseY);
 
-    for (int x = 0; x < BOARD_SIZE; x++) {
-      for (int y = 0; y < BOARD_SIZE; y++) {
+    for (int x = 0; x < size; x++) {
+      for (int y = 0; y < size; y++) {
         PVector point = points[y][x];
         if (point.dist(mouse) < closestDistance) {
           closestDistance = point.dist(mouse);

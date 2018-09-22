@@ -6,16 +6,13 @@ AudioPlayer errorSound, passSound, plopSound;
 Game game;
 
 static final int size = 19;
-static final int SCREEN_WIDTH = 1000;
-static final int SCREEN_HEIGHT = 1000;
 static final int MAX_FRAME_RATE = 1000;
 
 public void setup() {
-  size(1000, 1000, P3D);
+  fullScreen(P3D);
   frameRate(MAX_FRAME_RATE);
   rectMode(CENTER);
   textAlign(CENTER, CENTER);
-
 
   minim = new Minim(this);
   errorSound = loadPlayer("error.mp3");
