@@ -1,16 +1,12 @@
-
-import java.util.*;
-/**
- Represents a Go game. 
- */
+import java.util.*; //<>//
 
 class Game {
-  final static int BLACK = #000000;
-  final static int WHITE = #FFFFFF;
+  final static int BLACK = 0xff000000;
+  final static int WHITE = 0xffFFFFFF;
   final float KOMI = 6.5f;
   Board board;
   private Stone[][] stones;
-  private LinkedList<GameState> history;
+  LinkedList<GameState> history;
   private LinkedList<Point> checkedPoints;
   private boolean turn;
   private int current;
@@ -20,10 +16,16 @@ class Game {
   private float start = 0;
   private float end = 0;
   private boolean pass = false;
+  private boolean endGame = false;
+  private boolean won = false;
+  private int winner;
+
   /* For optimization, unnecessary to draw board all the time */
   private boolean drawBoard = true; // if true, draws the board.
+  int size;
 
   private Game(int size) {
+    this.size = size;
     board = new Board(size);
     stones = new Stone[size][size];
     turn = true;
@@ -32,11 +34,11 @@ class Game {
     scoreBlack = 0;
     scoreWhite = KOMI;
     history = new LinkedList<GameState>();
-    background(0xff8b4513);
+    //background(0xff8b4513);
   }
 
-  private GameState createState() {
-    return new GameState(toShort(), turn, scoreBlack, scoreWhite, current);
+  public GameState createState() {
+    return new GameState(toShort(), turn, scoreBlack, scoreWhite, current, (LinkedList<GameState>)history.clone());
   }
 
   private short[][] toShort() {
@@ -84,7 +86,7 @@ class Game {
   private void render() {
     noStroke();
     background(0xff8b4513);
-    directionalLight(255, 2555, 255, 0.5, 0.5, -1);
+    directionalLight(255, 2555, 255, 0.5f, 0.5f, -1);
     renderBoard();
     drawHud();
   }
@@ -92,34 +94,48 @@ class Game {
   private void drawHud() {    
     fill(128);
     textSize(20);
-    text("Frame rate: "+int(frameRate), 0.05* width, 0.05*height);
+    text("Frame rate: "+PApplet.parseInt(frameRate), 0.05f* width, 0.05f*height);
 
     fill(0);
     textSize(100);
-    text("G", width * 0.46, height * (0.1 + 0.003 * cos(frameCount * 0.01)));
+    text("G", width * 0.46f, height * (0.1f + 0.003f * cos(frameCount * 0.01f)));
     fill(255);
-    text("o", width * 0.46 + textWidth("G"), height * (0.1 + 0.003 * sin(frameCount * 0.01)));
+    text("o", width * 0.46f + textWidth("G"), height * (0.1f + 0.003f * sin(frameCount * 0.01f)));
 
     if (pass) {
-      fill(otherColor(current));
-      text("Pass!", width * 0.5, height*0.20);
+      if (!endGame) {
+        fill(otherColor(current));
+        text("Pass!", width * 0.5f, height*0.20f);
+      } else {
+        if (!won) {
+          fill((current+otherColor(current))/2);
+          text("Remove dead stones", width * 0.5f, height*0.20f);
+        } else {
+          fill(winner);
+          if (winner == BLACK) {
+            text("Black Wins!", width * 0.5f, height*0.20f);
+          } else {
+            text("White Wins!", width * 0.5f, height*0.20f);
+          }
+        }
+      }
     }
 
     textSize(25);
     fill(0);
-    text("Black Score :"+scoreBlack, width*0.25, height * 0.15f); 
+    text("Black Score :"+scoreBlack, width*0.25f, height * 0.15f); 
     fill(255);
     if (scoreWhite == KOMI) {
       text("White Score : 6.5 (KOMI)", width*0.75f, height * 0.15f);
     } else {
       text("White Score :"+scoreWhite, width*0.75f, height * 0.15f);
     }
-    
+
     fill(current);
-    text("Current Player", width*0.5, height * 0.92f); 
+    text("Current Player", width*0.5f, height * 0.92f); 
     noStroke();
 
-    end += 0.01;
+    end += 0.01f;
     if (end % (4 * PI) < TWO_PI) {
       arc(width/2, height * 0.96f, height * 0.03f, height * 0.03f, start % TWO_PI, end % TWO_PI);
     } else {
@@ -138,29 +154,37 @@ class Game {
     }
   }
 
-  private void move() {
-    changeTurn(placeStone());
+  private void move(Point loc, boolean isPlayer) {
+    boolean isSuccessful = placeStone(loc, isPlayer);
+    changeTurn(isSuccessful);
+    if (isSuccessful && isPlayer){
+      move(melvin.chooseMove(game.createState(),4,turn), false);
+    }
   }
 
   private boolean canPlay() {
     return !errorSound.isPlaying();
   }
 
-  private boolean placeStone() {
-    Point loc = board.closestPoint(mouseX, mouseY);
+  private boolean placeStone(Point loc, boolean isPlayer) {
+    /*Point loc = board.closestPoint(mouseX, mouseY); */
 
     if (inBound(loc.x, loc.y) && isEmpty(loc.x, loc.y)) {
       history.addFirst(createState());
       setStone(loc.x, loc.y, turn, true);
       capture(loc.x, loc.y);
       if (!ko() && freeSpace(loc.x, loc.y, current) != 0) {
-        plopSound.rewind();
-        plopSound.play();
+        if (isPlayer){
+          plopSound.rewind();
+          plopSound.play();
+        }
         return true;
       } else if (canPlay()) {
-        errorSound.rewind();
-        errorSound.play();
-        clicked = false;
+        if (isPlayer){
+          errorSound.rewind();
+          errorSound.play();
+          clicked = false;
+        }
         reverseMove();
       }
     }
@@ -171,21 +195,24 @@ class Game {
   private void update() {
     if (canPlay()) {
       render();
-      handleMouse();
+      //handleMouse();
       clicked = false;
     } else {
       cam.beginHUD();
       fill(255, 0, 0);
       textSize(100);
       text("Illegal Move!", width/2, height/2);
-      drawBoard = true;
       cam.endHUD();
     }
   }
 
   private void handleMouse() {
     if (canPlay() && clicked) {
-      move();
+      if (!endGame) {
+        move(board.closestPoint(mouseX, mouseY), true);
+      } else {
+        removeDeadStones(endGameMove());
+      }
     }
   }
 
@@ -201,7 +228,7 @@ class Game {
     current = otherColor(current);
   }
 
-  private color otherColor(color c) {
+  private int otherColor(int c) {
     if (c == BLACK) {
       return WHITE;
     } else return BLACK;
@@ -231,7 +258,7 @@ class Game {
     return 0;
   }
 
-  private boolean isEmpty(int x, int y) {
+  public boolean isEmpty(int x, int y) {
     return getStone(x, y) == null;
   }
 
@@ -276,39 +303,37 @@ class Game {
         }
       }
     }
-    if (captured) {
-      drawBoard = true;
-    }
   }
 
   /* Draw the board */
-  void renderBoard() {
-    if (drawBoard == true) {
-      pushMatrix();
-      translate(width/2, height/2);
-      rotateX(radians(40));
-      background(0xff8b4513);
-      board.render();
-      renderStones();
-      //drawBoard = false;
-      popMatrix();
-    }
+  public void renderBoard() {
+    pushMatrix();
+    translate(width/2, height/2);
+    rotateX(radians(40));
+    background(0xff8b4513);
+    board.render();
+    renderStones();
+    //drawBoard = false;
+    popMatrix();
   }
 
   /* Checks for ko state */
   private boolean ko() {
     short[][] shortStones = toShort();
-    
-    if (history.size() < 2){
+
+    if (history.size() < 2) {
       return false;
     }
     return (Arrays.deepEquals(shortStones, history.get(1).stones));
   }
 
+  private boolean equalStates(GameState a, GameState b) {
+    return Arrays.deepEquals(a.stones, b.stones);
+  }
+
   /* This function reverses the move */
   public void reverseMove() {
     setState(history.pollFirst());
-    drawBoard = true;
   }
 
   public void handleKeyboard() {
@@ -322,9 +347,22 @@ class Game {
         pass = false;
       }
     } else if (key == ' ') {
-      changeTurn(true);
-      pass = true;
 
+      if (pass == false) {
+        changeTurn(true);
+        pass = true;
+      } else {
+        if (!endGame) {
+          endGame = true;
+        } else {
+          won = true;
+          if (Math.max(scoreBlack, scoreWhite) == scoreBlack) {
+            winner = BLACK;
+          } else {
+            winner = WHITE;
+          }
+        }
+      }
       passSound.rewind();
       passSound.play();
     } else if (key == 'q') {
@@ -343,20 +381,35 @@ class Game {
       pushMatrix();
       translate(width/2, height/2);
       rotateX(radians(40));
-      stones[x][y].render();
+      //stones[x][y].render();
       popMatrix();
     }
   }
 
-  Point getDrawXY(float x, float y) {
-    int drawX = int(board.OFFSET_X+x*board.SQUARE_SIZE - width/2);
-    int drawY = int(board.OFFSET_Y+y*board.SQUARE_SIZE - height/2);
+  public Point getDrawXY(float x, float y) {
+    int drawX = PApplet.parseInt(board.OFFSET_X+x*board.SQUARE_SIZE - width/2);
+    int drawY = PApplet.parseInt(board.OFFSET_Y+y*board.SQUARE_SIZE - height/2);
     return new Point(drawX, drawY);
   }
 
-  Point getBoardXY(int x, int y) {
+  public Point getBoardXY(int x, int y) {
     int boardX = round((x-board.OFFSET_X)/(board.SQUARE_SIZE+1));
     int boardY = round((y-board.OFFSET_Y)/(board.SQUARE_SIZE+1));
     return new Point(boardX, boardY);
+  }
+
+  public boolean endGameMove() {
+    Point loc = board.closestPoint(mouseX, mouseY);
+    return inBound(loc.x, loc.y) && (!isEmpty(loc.x, loc.y));
+  }
+
+  public void removeDeadStones(boolean endGame) {
+    if (endGame) {
+      history.addFirst(createState());
+      Point loc = board.closestPoint(mouseX, mouseY);
+      current = otherColor(stones[loc.x][loc.y].stoneColor);
+      removeStones(loc.x, loc.y);
+      changeColor();
+    }
   }
 }

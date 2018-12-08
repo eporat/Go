@@ -1,15 +1,17 @@
+import java.awt.Point;
 import peasy.*;
 import ddf.minim.*;
 PeasyCam cam;
 Minim minim; 
 AudioPlayer errorSound, passSound, plopSound;
 Game game;
+GoAI melvin;
 
-static final int size = 19;
+static final int size = 7;
 static final int MAX_FRAME_RATE = 1000;
 
 public void setup() {
-  fullScreen(P3D);
+  size(500, 500, P3D);
   frameRate(MAX_FRAME_RATE);
   rectMode(CENTER);
   textAlign(CENTER, CENTER);
@@ -25,6 +27,10 @@ public void setup() {
   cam = new PeasyCam(this, width/2, height/2, 0, height);
   cam.setActive(false);
   game = new Game(size);
+  //for (int i = 0; i < 50; i++){
+  //  game.move(new Point(int(random(0,10)), int(random(0,10))));
+  //}
+  melvin = new GoAI(game);
 }
 
 public AudioPlayer loadPlayer(String path) {
@@ -33,14 +39,20 @@ public AudioPlayer loadPlayer(String path) {
   return player;
 }
 
-public void draw() {
-  game.update();
-}
-
 public void mousePressed() {
   game.clicked = true;
   game.handleMouse();
 }
+
+void draw(){
+  game.update();  
+}
+/*
+public void mousePressed() {
+  game.clicked = true;
+  //game.handleMouse();
+}
+*/
 
 public void keyPressed() {
   game.handleKeyboard();

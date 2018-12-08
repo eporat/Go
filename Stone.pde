@@ -1,20 +1,21 @@
+
 class Stone {
   int x, y;
   int stoneColor;
-  color drawColor;
+  int drawColor;
   boolean turn;
-  float STONE_SIZE = (0.20 * width) / (size + 1);
+  float STONE_SIZE = (0.20f * width) / (size + 1);
 
 
   Stone(int x, int y, boolean turn) {
     this.turn = turn;
     this.setColor(turn);
-    Point loc = game.getDrawXY(x,y);
+    Point loc = game.getDrawXY(x, y);
     this.x = loc.x;
     this.y = loc.y;
   }
 
-  void setColor(boolean turn) {
+  public void setColor(boolean turn) {
     if (turn) {
       this.stoneColor = Game.BLACK;
       this.drawColor = color(40);
@@ -24,11 +25,11 @@ class Stone {
     }
   }
 
-  void render() {
+  public void render() {
     pushMatrix();
     noStroke();
     fill(drawColor);
-    translate(x,y);
+    translate(x, y);
     sphere(STONE_SIZE);
     popMatrix();
   }
